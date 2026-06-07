@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Cek apakah user sudah login
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.auth.uid == userId;
+    }
+
+    match /items/{itemId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      // Hanya pelapor yang bisa menghapus barangnya
+      allow delete: if isAuth() && resource.data.reportedBy == request.auth.uid;
+    }
+
+    match /claims/{claimId} {
+      allow read, write: if isAuth();
+    }
+    
+    match /notifications/{notifId} {
+      allow read, write: if isAuth();
+    }
+  }
+}

@@ -1,0 +1,461 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/item_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../widgets/item_card.dart';
+import '../report/add_report_screen.dart';
+import '../profile/profile_screen.dart';
+import '../report/search_screen.dart';
+import '../report/validation_screen.dart';
+import '../profile/history_screen.dart';
+import '../auth/login_screen.dart';
+import '../../../core/constants/app_colors.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final itemProvider = context.read<ItemProvider>();
+    final authProvider = context.read<AuthProvider>();
+    final notifProvider = context.read<NotificationProvider>();
+    
+    Future.microtask(() {
+      itemProvider.listenToItems();
+      if (authProvider.user != null) {
+        notifProvider.listenToNotifications(authProvider.user!.uid);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.primary, Color(0xFF1E88E5)],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  expandedHeight: 120.0,
+                  floating: false,
+                  pinned: true,
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                    title: const Text(
+                      'Kampus Care',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    background: Stack(
+                      children: [
+                        Positioned(
+                          right: 20,
+                          top: 10,
+                          child: Row(
+                            children: [
+                              _buildNotificationIcon(),
+                              const SizedBox(width: 8),
+                              Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.logout, color: Colors.white, size: 20),
+                              onPressed: () async {
+                                final authProvider = context.read<AuthProvider>();
+                                final navigator = Navigator.of(context);
+                                await authProvider.logout();
+                                if (mounted) {
+                                  navigator.pushAndRemoveUntil(
+                                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                    (route) => false,
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                        const Positioned(
+                          left: 20,
+                          bottom: 44,
+                          child: Text(
+                            'Temukan barang hilang kampus',
+                            style: TextStyle(color: Colors.white70, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ];
+            },
+            body: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                child: _buildBody(),
+              ),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddReportScreen()),
+          ),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          child: const Icon(Icons.add, size: 28),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        color: Colors.white,
+        elevation: 10,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(Icons.home_outlined, Icons.home, 'Beranda', 0),
+              _buildNavItem(Icons.search_outlined, Icons.search, 'Cari', 1),
+              const SizedBox(width: 48), // Space for FAB
+              _buildNavItem(Icons.history_outlined, Icons.history, 'Riwayat', 2),
+              _buildNavItem(Icons.person_outlined, Icons.person, 'Profil', 3),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, IconData activeIcon, String label, int index) {
+    final isSelected = _currentIndex == index;
+    return InkWell(
+      onTap: () => setState(() => _currentIndex = index),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              color: isSelected ? AppColors.primary : Colors.grey,
+              size: 24,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: isSelected ? AppColors.primary : Colors.grey,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildBody() {
+    switch (_currentIndex) {
+      case 0:
+        return _buildFeed();
+      case 1:
+        return const SearchScreen();
+      case 2:
+        return const HistoryScreen();
+      case 3:
+        return const ProfileScreen();
+      default:
+        return _buildFeed();
+    }
+  }
+
+  Widget _buildFeed() {
+    final provider = context.watch<ItemProvider>();
+
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        _buildFilterTabs(provider),
+        const SizedBox(height: 12),
+        Expanded(
+          child: provider.isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
+              : provider.items.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Belum ada laporan',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Jadilah yang pertama menemukan!',
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () => provider.listenToItems(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 100),
+                    itemCount: provider.items.length,
+                    itemBuilder: (context, index) {
+                      return ItemCard(item: provider.items[index]);
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterTabs(ItemProvider provider) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _buildSegmentButton('Semua', 'semua', provider.filterStatus)),
+          Expanded(child: _buildSegmentButton('Hilang', 'hilang', provider.filterStatus)),
+          Expanded(child: _buildSegmentButton('Ditemukan', 'ditemukan', provider.filterStatus)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSegmentButton(String label, String value, String currentFilter) {
+
+    final isSelected = currentFilter == value;
+    return GestureDetector(
+      onTap: () => context.read<ItemProvider>().setFilter(value),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: isSelected ? AppColors.primary : Colors.grey[600],
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationIcon() {
+    return Consumer<NotificationProvider>(
+      builder: (context, provider, child) {
+        final unreadCount = provider.unreadCount;
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.notifications_none, color: Colors.white, size: 20),
+                if (unreadCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        unreadCount > 9 ? '9+' : unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () => _showNotificationsBottomSheet(context, provider),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showNotificationsBottomSheet(BuildContext context, NotificationProvider provider) {
+    provider.markAllAsRead();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Text(
+                'Notifikasi',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              if (provider.isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (provider.notifications.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(
+                    child: Text('Belum ada notifikasi', style: TextStyle(color: Colors.grey)),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: provider.notifications.length,
+                    itemBuilder: (context, index) {
+                      final notif = provider.notifications[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                          child: const Icon(Icons.notifications, color: AppColors.primary),
+                        ),
+                        title: Text(notif.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(notif.body),
+                        onTap: () {
+                          Navigator.pop(context); // Close bottom sheet
+                          if (notif.relatedItemId != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => Scaffold(
+                                  appBar: AppBar(
+                                    title: const Text('Validasi Pengembalian'),
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: AppColors.textDark,
+                                    elevation: 0.5,
+                                  ),
+                                  body: const SafeArea(child: ValidationScreen()),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

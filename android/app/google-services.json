@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "732029231463",
+    "project_id": "kampus-care",
+    "storage_bucket": "kampus-care.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732029231463:android:b1eb72f2d1dea04e2f8fc2",
+        "android_client_info": {
+          "package_name": "com.example.kampus_care"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-Xh8VtmXoqI118Hd7kCv7gOencsjsZls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732029231463:android:49051b762ea788f72f8fc2",
+        "android_client_info": {
+          "package_name": "com.example.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-Xh8VtmXoqI118Hd7kCv7gOencsjsZls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

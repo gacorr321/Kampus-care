@@ -1,0 +1,28 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "kampus-care",
+          "appId": "1:732029231463:android:b1eb72f2d1dea04e2f8fc2",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kampus-care",
+          "configurations": {
+            "android": "1:732029231463:android:b1eb72f2d1dea04e2f8fc2",
+            "web": "1:732029231463:web:964dabd0f63ec90b2f8fc2"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
