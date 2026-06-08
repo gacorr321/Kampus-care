@@ -115,12 +115,12 @@ class _ClaimWizardSheetState extends State<ClaimWizardSheet> {
     
     // Panggil callback klaim
     final isHilang = widget.item.status == 'hilang';
-    await widget.onClaimSubmit(context, isHilang);
-
-    if (mounted) {
-      setState(() => _isProcessing = false);
-      // Tutup bottom sheet setelah sukses
-      Navigator.pop(context);
+    try {
+      await widget.onClaimSubmit(context, isHilang);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 

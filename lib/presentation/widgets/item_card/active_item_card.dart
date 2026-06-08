@@ -55,7 +55,11 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
       );
 
       if (context.mounted) {
-        _showPinBottomSheet(context, pin, expiredAt, isHilangFlag);
+        Navigator.pop(context); // Tutup ClaimWizardSheet
+      }
+      
+      if (mounted) {
+        _showPinBottomSheet(this.context, pin, expiredAt, isHilangFlag);
       }
     } catch (e) {
       if (context.mounted) {
