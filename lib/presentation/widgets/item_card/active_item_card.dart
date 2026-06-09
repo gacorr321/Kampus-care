@@ -50,7 +50,7 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
       await notifProvider.sendNotification(
         targetUserId: item.reportedBy,
         title: isHilangFlag ? 'Barang Anda Ditemukan!' : 'Seseorang Mengklaim Barang Anda!',
-        body: '${authProvider.user!.name} merespons laporan ${item.title}. Siap-siap untuk dihubungi via WA.',
+        body: '${authProvider.user!.name} merespons laporan ${item.title}. Buka notifikasi ini untuk memasukkan PIN konfirmasi saat bertemu.',
         relatedItemId: item.id,
       );
 

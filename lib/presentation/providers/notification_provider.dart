@@ -26,13 +26,14 @@ class NotificationProvider extends ChangeNotifier {
     _notificationSub = _firestore
         .collection('notifications')
         .where('targetUserId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .listen(
       (snapshot) {
-        _notifications = snapshot.docs
+        var docs = snapshot.docs
             .map((doc) => NotificationModel.fromMap(doc.data()))
             .toList();
+        docs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        _notifications = docs;
         _isLoading = false;
         notifyListeners();
       },
