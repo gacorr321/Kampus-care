@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../providers/item_provider.dart';
 import '../../../data/models/item_model.dart';
 import '../../widgets/item_card.dart';
@@ -117,24 +118,34 @@ class _SearchScreenState extends State<SearchScreen> {
         // Search Header
         Container(
           width: double.infinity,
-          color: const Color(0xFF1565C0).withValues(alpha: 0.05),
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            border: Border(bottom: BorderSide(color: AppColors.divider, width: 1)),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             children: [
-              const Icon(Icons.search, size: 48, color: Color(0xFF1565C0)),
-              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.search_rounded, size: 36, color: AppColors.primary),
+              ),
+              const SizedBox(height: 12),
               const Text(
                 'Cari Laporan',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1565C0),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
               const Text(
                 'Ketik nama barang, deskripsi, atau kategori',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -145,32 +156,35 @@ class _SearchScreenState extends State<SearchScreen> {
                   Expanded(
                     child: TextField(
                       controller: _searchController,
+                      style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Cari sesuatu...',
-                        prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                        suffixIcon: _searchController.text.isNotEmpty 
+                        hintStyle: const TextStyle(color: AppColors.textHint),
+                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textLight),
+                        suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: Colors.grey),
+                                icon: const Icon(Icons.clear_rounded, color: AppColors.textLight),
                                 onPressed: () {
                                   _searchController.clear();
                                   _onSearchChanged();
                                 },
-                              ) 
+                              )
                             : null,
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: AppColors.surfaceVariant,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: const Color(0xFF1565C0).withValues(alpha: 0.5)),
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: const Color(0xFF1565C0).withValues(alpha: 0.2)),
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2),
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
                         ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -178,19 +192,19 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(width: 12),
                   InkWell(
                     onTap: _showFilterBottomSheet,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: _hasActiveFilters() ? const Color(0xFF1565C0) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        color: _hasActiveFilters() ? AppColors.primary : AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: const Color(0xFF1565C0).withValues(alpha: _hasActiveFilters() ? 1.0 : 0.2),
+                          color: _hasActiveFilters() ? AppColors.primary : AppColors.border,
                         ),
                       ),
                       child: Icon(
-                        Icons.tune, 
-                        color: _hasActiveFilters() ? Colors.white : const Color(0xFF1565C0),
+                        Icons.tune_rounded,
+                        color: _hasActiveFilters() ? Colors.white : AppColors.primary,
                       ),
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../providers/item_provider.dart';
 import '../../../data/models/item_model.dart';
 import '../../../data/services/camera_service.dart';
@@ -220,143 +221,294 @@ class _EditReportScreenState extends State<EditReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Laporan')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Edit Laporan'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Foto Section
+            _buildSectionLabel('Foto Barang'),
+            const SizedBox(height: 10),
             GestureDetector(
               onTap: _showImagePicker,
               child: Container(
                 height: 200,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: AppColors.surfaceVariant,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: AppColors.border, width: 1.5),
                 ),
+                clipBehavior: Clip.antiAlias,
                 child: _webImageBytes != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.memory(_webImageBytes!, fit: BoxFit.cover),
-                      )
+                    ? Image.memory(_webImageBytes!, fit: BoxFit.cover)
                     : _selectedImage != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                          )
+                        ? Image.file(_selectedImage!, fit: BoxFit.cover)
                         : ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: Image.network(
                               widget.item.imageUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.image_not_supported, size: 48, color: Colors.grey),
+                                  const Center(
+                                    child: Icon(Icons.image_not_supported, size: 48, color: AppColors.textLight),
+                                  ),
                             ),
                           ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             const Center(
               child: Text(
                 'Tap foto di atas untuk mengubahnya',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(color: AppColors.textLight, fontSize: 12),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Nama Barang *',
-                prefixIcon: Icon(Icons.inventory_2_outlined),
-                hintText: 'Contoh: Mouse Voxy hitam',
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCategory,
-              decoration: const InputDecoration(
-                labelText: 'Kategori',
-                prefixIcon: Icon(Icons.category_outlined),
-              ),
-              items: _categories
-                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                  .toList(),
-              onChanged: (val) => setState(() => _selectedCategory = val!),
-            ),
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: _descController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Deskripsi',
-                prefixIcon: Icon(Icons.description_outlined),
-                hintText: 'Ciri-ciri khusus, warna, merek, dll.',
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Tanggal Hilang/Ditemukan
-            InkWell(
-              onTap: _pickIncidentDate,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Tanggal Hilang/Ditemukan *',
-                  prefixIcon: Icon(Icons.calendar_today_outlined),
-                ),
-                child: Text(
-                  _incidentDate != null
-                      ? '${_incidentDate!.day}/${_incidentDate!.month}/${_incidentDate!.year}'
-                      : 'Pilih Tanggal',
-                  style: TextStyle(
-                    color: _incidentDate != null ? Colors.black87 : Colors.grey[600],
-                    fontSize: 16,
+            // Detail Section
+            _buildSectionLabel('Detail Laporan'),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadow.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
                   ),
-                ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildLabel('Nama Barang *'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _titleController,
+                    style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Contoh: Mouse Voxy hitam',
+                      prefixIcon: const Icon(Icons.inventory_2_outlined, color: AppColors.primary),
+                      filled: true,
+                      fillColor: AppColors.surfaceVariant,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Kategori'),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedCategory,
+                    decoration: InputDecoration(
+                      labelText: 'Pilih Kategori',
+                      prefixIcon: const Icon(Icons.category_outlined, color: AppColors.primary),
+                      filled: true,
+                      fillColor: AppColors.surfaceVariant,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      ),
+                    ),
+                    items: _categories
+                        .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                        .toList(),
+                    onChanged: (val) => setState(() => _selectedCategory = val!),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Deskripsi'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _descController,
+                    maxLines: 3,
+                    style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Ciri-ciri khusus, warna, merek, dll.',
+                      prefixIcon: const Icon(Icons.description_outlined, color: AppColors.primary),
+                      filled: true,
+                      fillColor: AppColors.surfaceVariant,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Tanggal Hilang/Ditemukan *'),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: _pickIncidentDate,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.calendar_today_outlined, color: AppColors.primary),
+                        filled: true,
+                        fillColor: AppColors.surfaceVariant,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                      child: Text(
+                        _incidentDate != null
+                            ? '${_incidentDate!.day}/${_incidentDate!.month}/${_incidentDate!.year}'
+                            : 'Pilih Tanggal',
+                        style: TextStyle(
+                          color: _incidentDate != null ? AppColors.textPrimary : AppColors.textLight,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Lokasi *'),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _locationController,
+                    style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Contoh: Lab Pemrograman Lt.2',
+                      prefixIcon: const Icon(Icons.location_on_outlined, color: AppColors.primary),
+                      filled: true,
+                      fillColor: AppColors.surfaceVariant,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      ),
+                      suffixIcon: _isGettingLocation
+                          ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                              ),
+                            )
+                          : IconButton(
+                              icon: const Icon(Icons.my_location_outlined, color: AppColors.primary),
+                              onPressed: _getLocation,
+                              tooltip: 'Gunakan lokasi saat ini',
+                            ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 28),
 
-            TextField(
-              controller: _locationController,
-              decoration: InputDecoration(
-                labelText: 'Lokasi *',
-                prefixIcon: const Icon(Icons.location_on_outlined),
-                hintText: 'Contoh: Lab Pemrograman Lt.2',
-                suffixIcon: _isGettingLocation
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: CircularProgressIndicator(strokeWidth: 2),
+            SizedBox(
+              height: 54,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _updateReport,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 4,
+                  shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                       )
-                    : IconButton(
-                        icon: const Icon(
-                          Icons.my_location,
-                          color: Color(0xFF1565C0),
-                        ),
-                        onPressed: _getLocation,
-                        tooltip: 'Gunakan lokasi saat ini',
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.save_outlined, size: 20),
+                          SizedBox(width: 10),
+                          Text(
+                            'Simpan Perubahan',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                          ),
+                        ],
                       ),
               ),
             ),
             const SizedBox(height: 24),
-
-            ElevatedButton(
-              onPressed: _isLoading ? null : _updateReport,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Simpan Perubahan', style: TextStyle(fontSize: 16)),
-            ),
-
-            const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
       ),
     );
   }

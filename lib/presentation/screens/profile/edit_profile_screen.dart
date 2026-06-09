@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -36,7 +37,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final provider = context.read<AuthProvider>();
-    
+
     final success = await provider.updateProfile(
       name: _nameController.text.trim(),
       nim: _nimController.text.trim(),
@@ -63,113 +64,206 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.all(10),
+              child: Icon(icon, color: AppColors.primary, size: 20),
+            ),
+            prefixIconConstraints: const BoxConstraints(minWidth: 44),
+            filled: true,
+            fillColor: AppColors.surfaceVariant,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Edit Profil', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text('Edit Profil', style: TextStyle(fontWeight: FontWeight.w700)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Color(0xFF1565C0),
-                  child: Icon(Icons.person, size: 60, color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 32),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama Lengkap',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 8),
+
+              // Avatar
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 3),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 48,
+                    backgroundColor: AppColors.primary,
+                    child: Icon(Icons.person, size: 50, color: Colors.white),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama lengkap tidak boleh kosong';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nimController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'NIM',
-                  prefixIcon: const Icon(Icons.badge_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              const SizedBox(height: 28),
+
+              // Form Card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow.withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'NIM tidak boleh kosong';
-                  }
-                  return null;
-                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildInputField(
+                      controller: _nameController,
+                      label: 'Nama Lengkap',
+                      hint: 'Masukkan nama lengkap',
+                      icon: Icons.person_outlined,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Nama lengkap tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInputField(
+                      controller: _nimController,
+                      label: 'NIM',
+                      hint: 'Masukkan NIM',
+                      icon: Icons.badge_outlined,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'NIM tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInputField(
+                      controller: _phoneController,
+                      label: 'Nomor Handphone (WhatsApp)',
+                      hint: 'Contoh: 628123...',
+                      icon: Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Nomor handphone tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'Nomor Handphone (WhatsApp)',
-                  prefixIcon: const Icon(Icons.phone_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+
+              const SizedBox(height: 28),
+
+              // Submit Button
+              SizedBox(
+                height: 54,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 4,
+                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
                   ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nomor handphone tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1565C0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                onPressed: isLoading ? null : _updateProfile,
-                child: isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  onPressed: isLoading ? null : _updateProfile,
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.save_outlined, size: 20),
+                            SizedBox(width: 10),
+                            Text(
+                              'Simpan Perubahan',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
                         ),
-                      )
-                    : const Text(
-                        'Simpan Perubahan',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                ),
               ),
             ],
           ),

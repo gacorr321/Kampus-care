@@ -132,8 +132,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Status Proses:',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+            'Status Proses',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textLight),
           ),
           const SizedBox(height: 12),
           Row(
@@ -148,14 +148,22 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                       child: Column(
                         children: [
                           Container(
-                            width: 20,
-                            height: 20,
+                            width: 22,
+                            height: 22,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: isCompleted ? AppColors.primary : Colors.grey[300],
+                              color: isCompleted ? AppColors.primary : AppColors.divider,
+                              boxShadow: isCompleted
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.primary.withValues(alpha: 0.25),
+                                        blurRadius: 4,
+                                      ),
+                                    ]
+                                  : null,
                             ),
                             child: isCompleted
-                                ? const Icon(Icons.check, size: 12, color: Colors.white)
+                                ? const Icon(Icons.check, size: 13, color: Colors.white)
                                 : null,
                           ),
                           const SizedBox(height: 6),
@@ -163,8 +171,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                             steps[index],
                             style: TextStyle(
                               fontSize: 10,
-                              color: isCompleted ? AppColors.primary : Colors.grey[500],
-                              fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
+                              color: isCompleted ? AppColors.primary : AppColors.textLight,
+                              fontWeight: isCompleted ? FontWeight.w700 : FontWeight.w500,
                             ),
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.visible,
@@ -177,8 +185,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                         flex: 3,
                         child: Container(
                           height: 2,
-                          color: index < currentStep ? AppColors.primary : Colors.grey[300],
-                          margin: const EdgeInsets.only(bottom: 20),
+                          color: index < currentStep ? AppColors.primary : AppColors.divider,
+                          margin: const EdgeInsets.only(bottom: 22),
                         ),
                       ),
                   ],
@@ -218,9 +226,10 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.divider, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
+                color: AppColors.shadow.withValues(alpha: 0.06),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),

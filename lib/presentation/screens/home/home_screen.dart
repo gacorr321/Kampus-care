@@ -43,9 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, Color(0xFF1E88E5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.primaryDark, AppColors.primary, AppColors.primaryLight],
           ),
         ),
         child: SafeArea(
@@ -54,59 +54,104 @@ class _HomeScreenState extends State<HomeScreen> {
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverAppBar(
-                  expandedHeight: 120.0,
+                  expandedHeight: 130.0,
                   floating: false,
                   pinned: true,
                   elevation: 0,
                   backgroundColor: Colors.transparent,
                   flexibleSpace: FlexibleSpaceBar(
                     titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-                    title: const Text(
-                      'Kampus Care',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
+                    title: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.shield_outlined, color: Colors.white, size: 16),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Kampus Care',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 19,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
                     ),
                     background: Stack(
                       children: [
+                        // Decorative circles
                         Positioned(
-                          right: 20,
-                          top: 10,
+                          right: -30,
+                          top: -30,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.05),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 40,
+                          bottom: 50,
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.04),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 16,
+                          top: 8,
                           child: Row(
                             children: [
                               _buildNotificationIcon(),
                               const SizedBox(width: 8),
                               Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.logout, color: Colors.white, size: 20),
-                              onPressed: () async {
-                                final authProvider = context.read<AuthProvider>();
-                                final navigator = Navigator.of(context);
-                                await authProvider.logout();
-                                if (mounted) {
-                                  navigator.pushAndRemoveUntil(
-                                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                                    (route) => false,
-                                  );
-                                }
-                              },
-                            ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+                                  onPressed: () async {
+                                    final authProvider = context.read<AuthProvider>();
+                                    final navigator = Navigator.of(context);
+                                    await authProvider.logout();
+                                    if (mounted) {
+                                      navigator.pushAndRemoveUntil(
+                                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                        (route) => false,
+                                      );
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
                         const Positioned(
                           left: 20,
                           bottom: 44,
                           child: Text(
                             'Temukan barang hilang kampus',
-                            style: TextStyle(color: Colors.white70, fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ],
@@ -134,8 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              blurRadius: 10,
+              color: AppColors.primary.withValues(alpha: 0.4),
+              blurRadius: 16,
+              spreadRadius: 2,
               offset: const Offset(0, 4),
             ),
           ],
@@ -148,25 +194,31 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          child: const Icon(Icons.add, size: 28),
+          child: const Icon(Icons.add_rounded, size: 30),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
+        notchMargin: 10.0,
         color: Colors.white,
-        elevation: 10,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(Icons.home_outlined, Icons.home, 'Beranda', 0),
-              _buildNavItem(Icons.search_outlined, Icons.search, 'Cari', 1),
-              const SizedBox(width: 48), // Space for FAB
-              _buildNavItem(Icons.history_outlined, Icons.history, 'Riwayat', 2),
-              _buildNavItem(Icons.person_outlined, Icons.person, 'Profil', 3),
-            ],
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: AppColors.divider, width: 1)),
+          ),
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(Icons.home_outlined, Icons.home_rounded, 'Beranda', 0),
+                _buildNavItem(Icons.search_outlined, Icons.search_rounded, 'Cari', 1),
+                const SizedBox(width: 48),
+                _buildNavItem(Icons.history_outlined, Icons.history_rounded, 'Riwayat', 2),
+                _buildNavItem(Icons.person_outlined, Icons.person_rounded, 'Profil', 3),
+              ],
+            ),
           ),
         ),
       ),
@@ -177,25 +229,30 @@ class _HomeScreenState extends State<HomeScreen> {
     final isSelected = _currentIndex == index;
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? AppColors.primary : Colors.grey,
-              size: 24,
+              color: isSelected ? AppColors.primary : AppColors.textLight,
+              size: isSelected ? 26 : 24,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
                 fontSize: 11,
-                color: isSelected ? AppColors.primary : Colors.grey,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? AppColors.primary : AppColors.textLight,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ],
@@ -288,8 +345,15 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -302,33 +366,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSegmentButton(String label, String value, String currentFilter) {
-
     final isSelected = currentFilter == value;
     return GestureDetector(
       onTap: () => context.read<ItemProvider>().setFilter(value),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(vertical: 11),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : null,
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? AppColors.primary : Colors.grey[600],
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
         ),
@@ -342,8 +396,9 @@ class _HomeScreenState extends State<HomeScreen> {
         final unreadCount = provider.unreadCount;
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: Colors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
           child: IconButton(
             icon: Stack(

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../data/services/camera_service.dart';
 import '../../providers/auth_provider.dart';
 import '../home/home_screen.dart';
@@ -65,11 +66,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -81,39 +82,93 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               const Text(
                 'Pilih Foto KTM',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
-              ListTile(
-                leading: const CircleAvatar(
-                  child: Icon(Icons.photo_library_outlined),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildSourceOption(
+                        icon: Icons.photo_library_outlined,
+                        label: 'Galeri',
+                        color: AppColors.primary,
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _pickKtm(ImageSource.gallery);
+                        },
+                      ),
+                    ),
+                    if (!kIsWeb) ...[
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildSourceOption(
+                          icon: Icons.camera_alt_outlined,
+                          label: 'Kamera',
+                          color: AppColors.success,
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            _pickKtm(ImageSource.camera);
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                title: const Text('Pilih dari Galeri'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickKtm(ImageSource.gallery);
-                },
               ),
-              if (!kIsWeb)
-                ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.camera_alt_outlined),
-                  ),
-                  title: const Text('Ambil Foto'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickKtm(ImageSource.camera);
-                  },
-                ),
               const SizedBox(height: 8),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSourceOption({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -207,35 +262,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RichText(
-          text: const TextSpan(
-            style: TextStyle(fontSize: 13, color: Colors.grey),
-            children: [
-              TextSpan(text: 'Foto KTM '),
-              TextSpan(
-                text: '*',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+        Row(
+          children: [
+            const Text(
+              'Foto KTM',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
-              TextSpan(text: ' (Wajib)'),
-            ],
-          ),
+            ),
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'Wajib',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         GestureDetector(
           onTap: _showKtmSourcePicker,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
             width: double.infinity,
-            height: 160,
+            height: 170,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
+              color: hasImage ? Colors.transparent : AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: hasImage
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.grey[350]!,
+                    ? AppColors.success.withValues(alpha: 0.5)
+                    : AppColors.border,
                 width: hasImage ? 2 : 1.5,
-                strokeAlign: BorderSide.strokeAlignInside,
               ),
+              boxShadow: hasImage
+                  ? [
+                      BoxShadow(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
             clipBehavior: Clip.antiAlias,
             child: hasImage
@@ -250,29 +329,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _buildPlaceholder(),
                             ),
-                      // Overlay tombol ganti
+                      // Overlay gradient + tombol ganti
                       Positioned(
                         bottom: 0,
                         left: 0,
                         right: 0,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          color: Colors.black54,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.7),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.edit, color: Colors.white, size: 16),
-                              SizedBox(width: 6),
+                              Icon(Icons.edit_outlined, color: Colors.white, size: 16),
+                              SizedBox(width: 8),
                               Text(
                                 'Ganti Foto',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                      // Success badge
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.success,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.success.withValues(alpha: 0.3),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.check, color: Colors.white, size: 16),
                         ),
                       ),
                     ],
@@ -280,24 +387,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 : _buildPlaceholder(),
           ),
         ),
-        if (hasImage)
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  size: 14,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 4),
-                const Text(
-                  'Foto KTM sudah dipilih',
-                  style: TextStyle(fontSize: 12, color: Colors.green),
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }
@@ -306,26 +395,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.badge_outlined,
-          size: 48,
-          color: Colors.grey[400],
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.badge_outlined,
+            size: 40,
+            color: AppColors.primary,
+          ),
         ),
-        const SizedBox(height: 10),
-        Text(
+        const SizedBox(height: 12),
+        const Text(
           'Ketuk untuk Upload Foto KTM',
           style: TextStyle(
-            color: Colors.grey[500],
+            color: AppColors.textSecondary,
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
+        const Text(
           'Galeri atau Kamera',
           style: TextStyle(
-            color: Colors.grey[400],
+            color: AppColors.textLight,
             fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    Widget? suffixIcon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.all(10),
+              child: Icon(icon, color: AppColors.primary, size: 20),
+            ),
+            prefixIconConstraints: const BoxConstraints(minWidth: 44),
+            suffixIcon: suffixIcon,
+            filled: true,
+            fillColor: AppColors.surfaceVariant,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
           ),
         ),
       ],
@@ -338,100 +490,203 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isLoading = provider.isLoading || _isUploadingKtm;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Akun Baru')),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Daftar Akun Baru'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
+        elevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 24),
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Lengkap',
-                  prefixIcon: Icon(Icons.person_outlined),
-                ),
-              ),
+              const SizedBox(height: 8),
+
+              // Section: Data Pribadi
+              _buildSectionHeader('Data Pribadi', 'Lengkapi informasi diri kamu'),
               const SizedBox(height: 16),
-              TextField(
-                controller: _nimController,
-                decoration: const InputDecoration(
-                  labelText: 'NIM',
-                  prefixIcon: Icon(Icons.badge_outlined),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Nomor WhatsApp (Contoh: 628123...)',
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outlined),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow.withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildInputField(
+                      controller: _nameController,
+                      label: 'Nama Lengkap',
+                      hint: 'Masukkan nama lengkap',
+                      icon: Icons.person_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInputField(
+                      controller: _nimController,
+                      label: 'NIM',
+                      hint: 'Masukkan NIM',
+                      icon: Icons.badge_outlined,
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInputField(
+                      controller: _emailController,
+                      label: 'Email',
+                      hint: 'Masukkan email aktif',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInputField(
+                      controller: _phoneController,
+                      label: 'Nomor WhatsApp',
+                      hint: 'Contoh: 628123...',
+                      icon: Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInputField(
+                      controller: _passwordController,
+                      label: 'Password',
+                      hint: 'Buat password yang kuat',
+                      icon: Icons.lock_outlined,
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.textLight,
+                        ),
+                        onPressed: () =>
+                            setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+
               const SizedBox(height: 24),
 
-              // ── Field Upload KTM ──
-              _buildKtmPicker(),
+              // Section: Verifikasi Identitas
+              _buildSectionHeader('Verifikasi Identitas', 'Upload foto KTM untuk verifikasi'),
+              const SizedBox(height: 16),
+
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow.withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: _buildKtmPicker(),
+              ),
 
               const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: isLoading ? null : _handleRegister,
-                child: isLoading
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
+
+              // Submit Button
+              SizedBox(
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _handleRegister,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 4,
+                    shadowColor: AppColors.primary.withValues(alpha: 0.4),
+                  ),
+                  child: isLoading
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            _isUploadingKtm
-                                ? 'Mengupload KTM...'
-                                : 'Mendaftarkan...',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      )
-                    : const Text('Daftar', style: TextStyle(fontSize: 16)),
+                            const SizedBox(width: 14),
+                            Text(
+                              _isUploadingKtm
+                                  ? 'Mengupload KTM...'
+                                  : 'Mendaftarkan...',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.person_add_outlined, size: 20),
+                            SizedBox(width: 10),
+                            Text(
+                              'Daftar Akun',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

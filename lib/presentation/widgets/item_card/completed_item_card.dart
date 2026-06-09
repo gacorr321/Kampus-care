@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../data/models/item_model.dart';
 
 class CompletedItemCard extends StatelessWidget {
@@ -57,12 +58,25 @@ class CompletedItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 20),
-      elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+      elevation: 0,
+      shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.divider, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -183,6 +197,7 @@ class CompletedItemCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

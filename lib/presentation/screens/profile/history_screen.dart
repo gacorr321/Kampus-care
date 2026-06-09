@@ -34,48 +34,62 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
 
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Riwayat Pengguna',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.history_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
-            ),
+              const SizedBox(width: 12),
+              const Text(
+                'Riwayat Pengguna',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
           ),
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(24),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: TabBar(
             controller: _tabController,
             indicator: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                )
-              ],
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(12),
             ),
-            labelColor: AppColors.primary,
-            unselectedLabelColor: Colors.grey[600],
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+            labelColor: Colors.white,
+            unselectedLabelColor: AppColors.textSecondary,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
             dividerColor: Colors.transparent,
             indicatorSize: TabBarIndicatorSize.tab,
             padding: const EdgeInsets.all(4),
             tabs: const [
-              Tab(text: 'Semua Selesai'),
+              Tab(text: 'Selesai'),
               Tab(text: 'Laporanku'),
               Tab(text: 'Klaimku'),
             ],
