@@ -62,9 +62,8 @@ class _PinBottomSheetState extends State<PinBottomSheet> {
       String phone = widget.reportedByPhone.replaceAll(RegExp(r'\D'), '');
       if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
 
-      final message = widget.isHilang
-          ? 'Halo ${widget.reportedByName}, saya menemukan barang ${widget.itemTitle} milikmu. Saya sudah memiliki kode pengembalian di aplikasi. Bisa kita atur waktu untuk bertemu? Terima kasih 🙏'
-          : 'Halo ${widget.reportedByName}, saya adalah pemilik ${widget.itemTitle} yang kamu temukan. Saya sudah memiliki kode konfirmasi pengembalian. Bisa kita atur waktu dan tempat untuk pengambilan barang? Terima kasih 🙏';
+      final message =
+          'Halo ${widget.reportedByName}, saya adalah pemilik ${widget.itemTitle} barang yang kamu temukan. Saya sudah memiliki kode konfirmasi pengembalian. Bisa kita atur waktu dan tempat untuk pengambilan barang? Terima kasih 🙏';
 
       final url = Uri.parse(
         'https://wa.me/$phone?text=${Uri.encodeComponent(message)}',
@@ -76,7 +75,8 @@ class _PinBottomSheetState extends State<PinBottomSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Tidak dapat membuka WhatsApp. Pastikan aplikasi terpasang.'),
+              content: Text(
+                  'Tidak dapat membuka WhatsApp. Pastikan aplikasi terpasang.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -203,7 +203,8 @@ class _PinBottomSheetState extends State<PinBottomSheet> {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isExpired ? Colors.grey : const Color(0xFF25D366),
+                backgroundColor:
+                    isExpired ? Colors.grey : const Color(0xFF25D366),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
