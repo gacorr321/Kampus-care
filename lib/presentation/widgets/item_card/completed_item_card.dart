@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../data/models/item_model.dart';
+import 'components/item_map_preview.dart';
 
 class CompletedItemCard extends StatelessWidget {
   final ItemModel item;
@@ -19,9 +20,52 @@ class CompletedItemCard extends StatelessWidget {
             text: TextSpan(
               style: TextStyle(fontSize: 13, color: Colors.grey[800]),
               children: [
-                TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.w500)),
-                TextSpan(text: value, style: const TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(
+                    text: label,
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+                TextSpan(
+                    text: value,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds a tappable location row that opens the map when tapped.
+  Widget _buildLocationRow(BuildContext context) {
+    final hasMap = item.latitude != null && item.longitude != null;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          hasMap ? Icons.location_on : Icons.location_off,
+          size: 16,
+          color: hasMap ? AppColors.primary : Colors.grey[600],
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: hasMap
+                ? () => showItemMapPreview(
+                      context,
+                      item.locationName,
+                      item.latitude!,
+                      item.longitude!,
+                    )
+                : null,
+            child: Text(
+              'Lokasi ketemu: ${item.locationName}',
+              style: TextStyle(
+                fontSize: 13,
+                color: hasMap ? AppColors.primary : Colors.grey[800],
+                fontWeight: FontWeight.w500,
+                decoration:
+                    hasMap ? TextDecoration.underline : TextDecoration.none,
+              ),
             ),
           ),
         ),
@@ -40,7 +84,8 @@ class CompletedItemCard extends StatelessWidget {
               fit: BoxFit.cover,
               placeholder: (context, url) => Container(
                   color: Colors.grey[200],
-                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2))),
+                  child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2))),
               errorWidget: (context, url, error) => Container(
                   color: Colors.grey[200],
                   child: const Icon(Icons.broken_image, color: Colors.grey)),
@@ -50,7 +95,8 @@ class CompletedItemCard extends StatelessWidget {
               width: double.infinity,
               color: Colors.grey[200],
               child: const Center(
-                  child: Text('Tidak ada', style: TextStyle(color: Colors.grey, fontSize: 10))),
+                  child: Text('Tidak ada',
+                      style: TextStyle(color: Colors.grey, fontSize: 10))),
             ),
     );
   }
@@ -77,127 +123,137 @@ class CompletedItemCard extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: item.imageUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: item.imageUrl,
-                      width: double.infinity,
-                      height: 180,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: item.imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: item.imageUrl,
+                        width: double.infinity,
                         height: 180,
-                        color: Colors.grey[200],
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
-                      errorWidget: (context, url, error) => Container(
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: 180,
+                          color: Colors.grey[200],
+                          child:
+                              const Center(child: CircularProgressIndicator()),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 180,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.broken_image,
+                              size: 50, color: Colors.grey),
+                        ),
+                      )
+                    : Container(
                         height: 180,
+                        width: double.infinity,
                         color: Colors.grey[200],
-                        child: const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                        child: const Icon(Icons.image_not_supported,
+                            size: 50, color: Colors.grey),
                       ),
-                    )
-                  : Container(
-                      height: 180,
-                      width: double.infinity,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                    ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              item.title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Divider(),
-            ),
-            _buildDetailRow(Icons.person, 'Ditemukan oleh: ', item.reportedByName),
-            const SizedBox(height: 8),
-            _buildDetailRow(Icons.person_outline, 'Dikembalikan ke: ', item.claimerName ?? 'Tidak diketahui'),
-            const SizedBox(height: 8),
-            _buildDetailRow(Icons.location_on, 'Lokasi ketemu: ', item.locationName),
-            const SizedBox(height: 8),
-            if (item.incidentDate != null) ...[
+              ),
+              const SizedBox(height: 16),
+              Text(
+                item.title,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(),
+              ),
               _buildDetailRow(
-                  Icons.calendar_today_outlined,
-                  item.status == 'hilang' ? 'Tanggal hilang: ' : 'Tanggal ditemukan: ',
-                  '${item.incidentDate!.day}/${item.incidentDate!.month}/${item.incidentDate!.year}'
-              ),
+                  Icons.person, 'Ditemukan oleh: ', item.reportedByName),
               const SizedBox(height: 8),
-            ],
-            _buildDetailRow(
-                Icons.calendar_today,
-                'Tanggal selesai: ',
-                item.returnedAt != null
-                    ? '${item.returnedAt!.day}/${item.returnedAt!.month}/${item.returnedAt!.year}'
-                    : '-'),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(),
-            ),
-            const Text(
-              '📸 Bukti Serah Terima:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildProofImage(item.returnProofImageUrl),
-                      const SizedBox(height: 4),
-                      Text('Dari: ${item.reportedByName}',
-                          style: const TextStyle(fontSize: 10, color: Colors.grey),
-                          overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildProofImage(item.claimerProofImageUrl),
-                      const SizedBox(height: 4),
-                      Text('Dari: ${item.claimerName ?? "Pengklaim"}',
-                          style: const TextStyle(fontSize: 10, color: Colors.grey),
-                          overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
-                ),
+              _buildDetailRow(Icons.person_outline, 'Dikembalikan ke: ',
+                  item.claimerName ?? 'Tidak diketahui'),
+              const SizedBox(height: 8),
+              _buildLocationRow(context),
+              const SizedBox(height: 8),
+              if (item.incidentDate != null) ...[
+                _buildDetailRow(
+                    Icons.calendar_today_outlined,
+                    item.status == 'hilang'
+                        ? 'Tanggal hilang: '
+                        : 'Tanggal ditemukan: ',
+                    '${item.incidentDate!.day}/${item.incidentDate!.month}/${item.incidentDate!.year}'),
+                const SizedBox(height: 8),
               ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+              _buildDetailRow(
+                  Icons.calendar_today,
+                  'Tanggal selesai: ',
+                  item.returnedAt != null
+                      ? '${item.returnedAt!.day}/${item.returnedAt!.month}/${item.returnedAt!.year}'
+                      : '-'),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              const Text(
+                '📸 Bukti Serah Terima:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              Row(
                 children: [
-                  Icon(Icons.verified, color: Colors.green, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'TERVERIFIKASI',
-                    style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildProofImage(item.returnProofImageUrl),
+                        const SizedBox(height: 4),
+                        Text('Dari: ${item.reportedByName}',
+                            style: const TextStyle(
+                                fontSize: 10, color: Colors.grey),
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildProofImage(item.claimerProofImageUrl),
+                        const SizedBox(height: 4),
+                        Text('Dari: ${item.claimerName ?? "Pengklaim"}',
+                            style: const TextStyle(
+                                fontSize: 10, color: Colors.grey),
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.verified, color: Colors.green, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'TERVERIFIKASI',
+                      style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
+
+enum AuthStatus { uninitialized, authenticated, unauthenticated }
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repository = AuthRepository();
@@ -8,14 +12,47 @@ class AuthProvider extends ChangeNotifier {
   UserModel? _user;
   bool _isLoading = false;
   String? _errorMessage;
+  AuthStatus _status = AuthStatus.uninitialized;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isLoggedIn => _user != null;
+  AuthStatus get status => _status;
 
   void _setLoading(bool value) {
     _isLoading = value;
+    notifyListeners();
+  }
+
+  /// Checks if a Firebase user is already signed in (persistent auth).
+  /// If so, fetches the user profile from Firestore and sets [AuthStatus.authenticated].
+  /// Otherwise sets [AuthStatus.unauthenticated].
+  Future<void> checkAuthState() async {
+    try {
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null) {
+        // Fetch user profile from Firestore
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .get();
+
+        if (doc.exists) {
+          _user = UserModel.fromMap(doc.data()!);
+          _status = AuthStatus.authenticated;
+        } else {
+          // Firestore doc missing — sign out
+          await FirebaseAuth.instance.signOut();
+          _status = AuthStatus.unauthenticated;
+        }
+      } else {
+        _status = AuthStatus.unauthenticated;
+      }
+    } catch (_) {
+      // On any error, treat as unauthenticated
+      _status = AuthStatus.unauthenticated;
+    }
     notifyListeners();
   }
 
@@ -38,6 +75,7 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         ktmUrl: ktmUrl,
       );
+      _status = AuthStatus.authenticated;
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -60,6 +98,7 @@ class AuthProvider extends ChangeNotifier {
         nim: nim,
         password: password,
       );
+      _status = AuthStatus.authenticated;
       return true;
     } catch (e) {
       final errorMsg = e.toString();
@@ -105,6 +144,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     await _repository.logout();
     _user = null;
+    _status = AuthStatus.unauthenticated;
     notifyListeners();
   }
 }
