@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/item_model.dart';
+import '../../../data/services/location_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/item_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -30,6 +31,73 @@ class ActiveItemCard extends StatefulWidget {
 
 class _ActiveItemCardState extends State<ActiveItemCard> {
   ItemModel get item => widget.item;
+  final LocationService _locationService = LocationService();
+
+  /// Opens the map using GPS coordinates directly, or geocodes the address
+  /// if GPS coordinates are missing.
+  Future<void> _openMapForItem(BuildContext context) async {
+    final hasMap = item.latitude != null && item.longitude != null;
+
+    if (hasMap) {
+      showItemMapPreview(
+          context, item.locationName, item.latitude!, item.longitude!);
+      return;
+    }
+
+    // No GPS coordinates — try to geocode the address
+    if (item.locationName.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lokasi tidak tersedia untuk barang ini.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Show loading dialog while geocoding
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 16),
+                  Text('Mencari lokasi...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final result = await _locationService.geocodeAddress(item.locationName);
+
+    if (context.mounted) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      if (result != null) {
+        showItemMapPreview(context, item.locationName, result.lat, result.lng);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat menemukan lokasi pada peta.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _processClaim(BuildContext context, bool isHilang) async {
     final authProvider = context.read<AuthProvider>();
@@ -49,15 +117,18 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
 
       await notifProvider.sendNotification(
         targetUserId: item.reportedBy,
-        title: isHilangFlag ? 'Barang Anda Ditemukan!' : 'Seseorang Mengklaim Barang Anda!',
-        body: '${authProvider.user!.name} merespons laporan ${item.title}. Buka notifikasi ini untuk memasukkan PIN konfirmasi saat bertemu.',
+        title: isHilangFlag
+            ? 'Barang Anda Ditemukan!'
+            : 'Seseorang Mengklaim Barang Anda!',
+        body:
+            '${authProvider.user!.name} merespons laporan ${item.title}. Buka notifikasi ini untuk memasukkan PIN konfirmasi saat bertemu.',
         relatedItemId: item.id,
       );
 
       if (context.mounted) {
         Navigator.pop(context); // Tutup ClaimWizardSheet
       }
-      
+
       if (mounted) {
         _showPinBottomSheet(this.context, pin, expiredAt, isHilangFlag);
       }
@@ -80,7 +151,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
     if (authProvider.user?.uid == item.reportedBy) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Anda tidak dapat mengklaim barang yang Anda laporkan sendiri.'),
+          content: Text(
+              'Anda tidak dapat mengklaim barang yang Anda laporkan sendiri.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -93,12 +165,14 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => ClaimWizardSheet(
         item: item,
-        onClaimSubmit: (submitCtx, submitIsHilang) => _processClaim(submitCtx, submitIsHilang),
+        onClaimSubmit: (submitCtx, submitIsHilang) =>
+            _processClaim(submitCtx, submitIsHilang),
       ),
     );
   }
 
-  void _showPinBottomSheet(BuildContext context, String pin, DateTime expiredAt, bool isHilang) {
+  void _showPinBottomSheet(
+      BuildContext context, String pin, DateTime expiredAt, bool isHilang) {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -133,7 +207,10 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
         children: [
           const Text(
             'Status Proses',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textLight),
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textLight),
           ),
           const SizedBox(height: 12),
           Row(
@@ -152,18 +229,22 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                             height: 22,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: isCompleted ? AppColors.primary : AppColors.divider,
+                              color: isCompleted
+                                  ? AppColors.primary
+                                  : AppColors.divider,
                               boxShadow: isCompleted
                                   ? [
                                       BoxShadow(
-                                        color: AppColors.primary.withValues(alpha: 0.25),
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.25),
                                         blurRadius: 4,
                                       ),
                                     ]
                                   : null,
                             ),
                             child: isCompleted
-                                ? const Icon(Icons.check, size: 13, color: Colors.white)
+                                ? const Icon(Icons.check,
+                                    size: 13, color: Colors.white)
                                 : null,
                           ),
                           const SizedBox(height: 6),
@@ -171,8 +252,12 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                             steps[index],
                             style: TextStyle(
                               fontSize: 10,
-                              color: isCompleted ? AppColors.primary : AppColors.textLight,
-                              fontWeight: isCompleted ? FontWeight.w700 : FontWeight.w500,
+                              color: isCompleted
+                                  ? AppColors.primary
+                                  : AppColors.textLight,
+                              fontWeight: isCompleted
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                             ),
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.visible,
@@ -185,7 +270,9 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                         flex: 3,
                         child: Container(
                           height: 2,
-                          color: index < currentStep ? AppColors.primary : AppColors.divider,
+                          color: index < currentStep
+                              ? AppColors.primary
+                              : AppColors.divider,
                           margin: const EdgeInsets.only(bottom: 22),
                         ),
                       ),
@@ -204,23 +291,13 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
     final isHilang = item.status == 'hilang';
     final isDikembalikan = item.status == 'dikembalikan';
     final hasMap = item.latitude != null && item.longitude != null;
+    final hasLocation = hasMap || item.locationName.isNotEmpty;
     final currentUserId = context.watch<AuthProvider>().user?.uid;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: () {
-          if (hasMap) {
-            showItemMapPreview(context, item.locationName, item.latitude!, item.longitude!);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Lokasi spesifik pada peta tidak tersedia untuk barang ini.'),
-                backgroundColor: Colors.orange,
-              ),
-            );
-          }
-        },
+        onTap: () => _openMapForItem(context),
         borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
@@ -241,7 +318,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
                     child: item.imageUrl.isNotEmpty
                         ? CachedNetworkImage(
                             imageUrl: item.imageUrl,
@@ -252,19 +330,22 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                               height: 180,
                               color: Colors.grey[100],
                               child: const Center(
-                                child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                    color: AppColors.primary, strokeWidth: 2),
                               ),
                             ),
                             errorWidget: (context, url, error) => Container(
                               height: 180,
                               color: Colors.grey[100],
-                              child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                              child: const Icon(Icons.broken_image,
+                                  size: 48, color: Colors.grey),
                             ),
                           )
                         : Container(
                             height: 180,
                             color: Colors.grey[100],
-                            child: const Icon(Icons.inventory_2_outlined, size: 60, color: Colors.grey),
+                            child: const Icon(Icons.inventory_2_outlined,
+                                size: 60, color: Colors.grey),
                           ),
                   ),
                   Positioned(
@@ -275,7 +356,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: isDikembalikan
                                 ? Colors.blue.withValues(alpha: 0.75)
@@ -283,7 +365,9 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                                     ? Colors.red.withValues(alpha: 0.75)
                                     : Colors.green.withValues(alpha: 0.75)),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 1),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -291,13 +375,17 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                               Icon(
                                 isDikembalikan
                                     ? Icons.verified
-                                    : (isHilang ? Icons.search : Icons.check_circle),
+                                    : (isHilang
+                                        ? Icons.search
+                                        : Icons.check_circle),
                                 size: 14,
                                 color: Colors.white,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                isDikembalikan ? 'Selesai' : (isHilang ? 'Hilang' : 'Ditemukan'),
+                                isDikembalikan
+                                    ? 'Selesai'
+                                    : (isHilang ? 'Hilang' : 'Ditemukan'),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -314,7 +402,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                     top: 12,
                     right: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
@@ -338,7 +427,10 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                   children: [
                     Text(
                       item.title,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -347,39 +439,46 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                       item.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.4),
+                      style: TextStyle(
+                          color: Colors.grey[600], fontSize: 13, height: 1.4),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Icon(
-                          hasMap ? Icons.location_on : Icons.location_off,
+                          hasLocation ? Icons.location_on : Icons.location_off,
                           size: 16,
-                          color: hasMap ? AppColors.primary : Colors.grey,
+                          color: hasLocation ? AppColors.primary : Colors.grey,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: hasMap ? () => showItemMapPreview(context, item.locationName, item.latitude!, item.longitude!) : null,
+                            onTap: () => _openMapForItem(context),
                             child: Text(
                               item.locationName,
                               style: TextStyle(
-                                color: hasMap ? AppColors.primary : Colors.grey,
+                                color: hasLocation
+                                    ? AppColors.primary
+                                    : Colors.grey,
                                 fontSize: 12,
-                                decoration: hasMap ? TextDecoration.underline : TextDecoration.none,
+                                decoration: hasLocation
+                                    ? TextDecoration.underline
+                                    : TextDecoration.none,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Icon(Icons.person_outline, size: 16, color: Colors.grey),
+                        const Icon(Icons.person_outline,
+                            size: 16, color: Colors.grey),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             item.reportedByName,
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -389,11 +488,13 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                          Icon(Icons.calendar_today,
+                              size: 16, color: Colors.grey[600]),
                           const SizedBox(width: 4),
                           Text(
                             '${isHilang ? "Hilang" : "Ditemukan"} pd: ${item.incidentDate!.day}/${item.incidentDate!.month}/${item.incidentDate!.year}',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 12),
                           ),
                         ],
                       ),
@@ -409,18 +510,23 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF25D366).withValues(alpha: 0.1),
+                            backgroundColor:
+                                const Color(0xFF25D366).withValues(alpha: 0.1),
                             foregroundColor: const Color(0xFF1DA851),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: const Color(0xFF1DA851).withValues(alpha: 0.3)),
+                              side: BorderSide(
+                                  color: const Color(0xFF1DA851)
+                                      .withValues(alpha: 0.3)),
                             ),
                             elevation: 0,
                           ),
-                          onPressed: () => _handleKlaimBarang(context, isHilang),
+                          onPressed: () =>
+                              _handleKlaimBarang(context, isHilang),
                           icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                          label: const Text('Klaim Barang Ini', style: TextStyle(fontSize: 14)),
+                          label: const Text('Klaim Barang Ini',
+                              style: TextStyle(fontSize: 14)),
                         ),
                       ),
                     ],
@@ -437,7 +543,8 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.blue.withValues(alpha: 0.3)),
+                              side: BorderSide(
+                                  color: Colors.blue.withValues(alpha: 0.3)),
                             ),
                             elevation: 0,
                           ),
@@ -446,15 +553,18 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                               context: context,
                               isScrollControlled: true,
                               shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(24)),
                               ),
-                              builder: (ctx) => UploadClaimerProofSheet(item: item),
+                              builder: (ctx) =>
+                                  UploadClaimerProofSheet(item: item),
                             );
                           },
                           icon: const Icon(Icons.camera_alt_outlined, size: 18),
                           label: const Text(
                             'Upload Bukti Terima',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),

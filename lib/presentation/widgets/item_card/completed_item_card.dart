@@ -2,12 +2,87 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../data/models/item_model.dart';
+import '../../../../data/services/location_service.dart';
 import 'components/item_map_preview.dart';
 
-class CompletedItemCard extends StatelessWidget {
+class CompletedItemCard extends StatefulWidget {
   final ItemModel item;
 
   const CompletedItemCard({super.key, required this.item});
+
+  @override
+  State<CompletedItemCard> createState() => _CompletedItemCardState();
+}
+
+class _CompletedItemCardState extends State<CompletedItemCard> {
+  ItemModel get item => widget.item;
+  final LocationService _locationService = LocationService();
+
+  /// Opens the map using GPS coordinates directly, or geocodes the address
+  /// if GPS coordinates are missing.
+  Future<void> _openMapForItem(BuildContext context) async {
+    final hasMap = item.latitude != null && item.longitude != null;
+
+    if (hasMap) {
+      showItemMapPreview(
+          context, item.locationName, item.latitude!, item.longitude!);
+      return;
+    }
+
+    // No GPS coordinates — try to geocode the address
+    if (item.locationName.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lokasi tidak tersedia untuk barang ini.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Show loading dialog while geocoding
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 16),
+                  Text('Mencari lokasi...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final result = await _locationService.geocodeAddress(item.locationName);
+
+    if (context.mounted) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      if (result != null) {
+        showItemMapPreview(context, item.locationName, result.lat, result.lng);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat menemukan lokasi pada peta.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Row(
@@ -37,34 +112,29 @@ class CompletedItemCard extends StatelessWidget {
   /// Builds a tappable location row that opens the map when tapped.
   Widget _buildLocationRow(BuildContext context) {
     final hasMap = item.latitude != null && item.longitude != null;
+    final hasLocation = hasMap || item.locationName.isNotEmpty;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
-          hasMap ? Icons.location_on : Icons.location_off,
+          hasLocation ? Icons.location_on : Icons.location_off,
           size: 16,
-          color: hasMap ? AppColors.primary : Colors.grey[600],
+          color: hasLocation ? AppColors.primary : Colors.grey[600],
         ),
         const SizedBox(width: 8),
         Expanded(
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: hasMap
-                ? () => showItemMapPreview(
-                      context,
-                      item.locationName,
-                      item.latitude!,
-                      item.longitude!,
-                    )
-                : null,
+            onTap: () => _openMapForItem(context),
             child: Text(
               'Lokasi ketemu: ${item.locationName}',
               style: TextStyle(
                 fontSize: 13,
-                color: hasMap ? AppColors.primary : Colors.grey[800],
+                color: hasLocation ? AppColors.primary : Colors.grey[800],
                 fontWeight: FontWeight.w500,
-                decoration:
-                    hasMap ? TextDecoration.underline : TextDecoration.none,
+                decoration: hasLocation
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
           ),

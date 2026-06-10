@@ -17,7 +17,8 @@ class LocationService {
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       // 1. Coba fetch alamat dari geocoding package (Native Android/iOS)
@@ -33,7 +34,7 @@ class LocationService {
             place.subLocality,
             place.locality,
           ].where((e) => e != null && e.isNotEmpty).toList();
-          
+
           if (addressParts.isNotEmpty) {
             return addressParts.join(', ');
           }
@@ -45,7 +46,8 @@ class LocationService {
       // 2. Coba fetch alamat dari Nominatim (Berguna untuk Web)
       try {
         final response = await http.get(
-          Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.latitude}&lon=${position.longitude}&zoom=18&addressdetails=1'),
+          Uri.parse(
+              'https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.latitude}&lon=${position.longitude}&zoom=18&addressdetails=1'),
           headers: {'User-Agent': 'KampusCareApp/1.0 (kampuscare@example.com)'},
         );
         if (response.statusCode == 200) {
@@ -64,5 +66,33 @@ class LocationService {
     } catch (e) {
       return 'Lokasi tidak tersedia';
     }
+  }
+
+  /// Converts an address string to GPS coordinates using Nominatim geocoding.
+  /// Returns null if geocoding fails.
+  Future<({double lat, double lng})?> geocodeAddress(String address) async {
+    try {
+      final query = Uri.encodeComponent(address);
+      final response = await http.get(
+        Uri.parse(
+          'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=1',
+        ),
+        headers: {'User-Agent': 'KampusCareApp/1.0 (kampuscare@example.com)'},
+      );
+
+      if (response.statusCode == 200) {
+        final results = json.decode(response.body) as List;
+        if (results.isNotEmpty) {
+          final lat = double.tryParse(results[0]['lat'].toString());
+          final lng = double.tryParse(results[0]['lon'].toString());
+          if (lat != null && lng != null) {
+            return (lat: lat, lng: lng);
+          }
+        }
+      }
+    } catch (_) {
+      // Geocoding failed, return null
+    }
+    return null;
   }
 }
