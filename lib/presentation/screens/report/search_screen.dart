@@ -8,6 +8,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../providers/item_provider.dart';
 import '../../../data/models/item_model.dart';
 import '../../widgets/item_card.dart';
+import '../../widgets/item_card/item_grid_tile.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -75,6 +76,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Position? _userPosition;
   bool _isFilterExpanded = false;
   bool _isGettingLocation = false;
+  bool _isGridView = false;
 
   @override
   void initState() {
@@ -452,11 +454,22 @@ class _SearchScreenState extends State<SearchScreen> {
                 )
               : _searchResults.isEmpty
                   ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(top: 8),
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) =>
-                          ItemCard(item: _searchResults[index]),
+                  : Column(
+                      children: [
+                        // ── Results header with toggle ────────────────────
+                        _buildResultsHeader(),
+                        // ── Results list or grid ─────────────────────────
+                        Expanded(
+                          child: _isGridView
+                              ? _buildGridView()
+                              : ListView.builder(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  itemCount: _searchResults.length,
+                                  itemBuilder: (context, index) =>
+                                      ItemCard(item: _searchResults[index]),
+                                ),
+                        ),
+                      ],
                     ),
         ),
       ],
@@ -852,6 +865,114 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  // ── Results Header (count + view toggle) ────────────────────────────────────
+
+  Widget _buildResultsHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Result count
+          Text(
+            '${_searchResults.length} hasil ditemukan',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          // View toggle
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildViewButton(Icons.view_list_rounded, false),
+                _buildViewButton(Icons.grid_view_rounded, true),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildViewButton(IconData icon, bool isGrid) {
+    final isActive = _isGridView == isGrid;
+    return GestureDetector(
+      onTap: () => setState(() => _isGridView = isGrid),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: isActive ? Colors.white : AppColors.textLight,
+        ),
+      ),
+    );
+  }
+
+  // ── Grid View ───────────────────────────────────────────────────────────────
+
+  Widget _buildGridView() {
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 0.78,
+      ),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        final item = _searchResults[index];
+        return ItemGridTile(
+          item: item,
+          onTap: () {
+            // Show full card in bottom sheet
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              builder: (_) => DraggableScrollableSheet(
+                initialChildSize: 0.85,
+                maxChildSize: 0.95,
+                minChildSize: 0.5,
+                expand: false,
+                builder: (_, scrollController) {
+                  return Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: ItemCard(item: item),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../data/models/item_model.dart';
 import '../../../../data/services/location_service.dart';
+import '../../providers/comment_provider.dart';
 import 'components/item_map_preview.dart';
+import 'components/comment_section.dart';
 
 class CompletedItemCard extends StatefulWidget {
   final ItemModel item;
@@ -110,6 +113,69 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
   }
 
   /// Builds a tappable location row that opens the map when tapped.
+  Widget _buildCommentRow(BuildContext context) {
+    final commentProvider = context.watch<CommentProvider>();
+    commentProvider.subscribeToComments(item.id);
+    final count = commentProvider.getCommentCount(item.id);
+
+    return GestureDetector(
+      onTap: () => showCommentSection(context, item),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.chat_bubble_outline_rounded,
+                    size: 20, color: AppColors.textSecondary),
+                if (count > 0)
+                  Positioned(
+                    right: -6,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                count > 0 ? 'Lihat $count komentar' : 'Tulis komentar pertama',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 20, color: AppColors.textLight),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLocationRow(BuildContext context) {
     final hasMap = item.latitude != null && item.longitude != null;
     final hasLocation = hasMap || item.locationName.isNotEmpty;
@@ -321,6 +387,8 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              _buildCommentRow(context),
             ],
           ),
         ),

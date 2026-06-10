@@ -4,6 +4,7 @@ import '../../providers/item_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/item_card.dart';
+import '../../widgets/item_card/item_grid_tile.dart';
 import '../report/add_report_screen.dart';
 import '../profile/profile_screen.dart';
 import '../report/search_screen.dart';
@@ -21,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  bool _isGridView = false;
 
   @override
   void initState() {
@@ -28,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final itemProvider = context.read<ItemProvider>();
     final authProvider = context.read<AuthProvider>();
     final notifProvider = context.read<NotificationProvider>();
-    
+
     Future.microtask(() {
       itemProvider.listenToItems();
       if (authProvider.user != null) {
@@ -45,7 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppColors.primaryDark, AppColors.primary, AppColors.primaryLight],
+            colors: [
+              AppColors.primaryDark,
+              AppColors.primary,
+              AppColors.primaryLight
+            ],
           ),
         ),
         child: SafeArea(
@@ -70,7 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(Icons.shield_outlined, color: Colors.white, size: 16),
+                          child: const Icon(Icons.shield_outlined,
+                              color: Colors.white, size: 16),
                         ),
                         const SizedBox(width: 10),
                         const Text(
@@ -122,17 +129,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                                  border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.2)),
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+                                  icon: const Icon(Icons.logout_rounded,
+                                      color: Colors.white, size: 20),
                                   onPressed: () async {
-                                    final authProvider = context.read<AuthProvider>();
+                                    final authProvider =
+                                        context.read<AuthProvider>();
                                     final navigator = Navigator.of(context);
                                     await authProvider.logout();
                                     if (mounted) {
                                       navigator.pushAndRemoveUntil(
-                                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const LoginScreen()),
                                         (route) => false,
                                       );
                                     }
@@ -166,7 +179,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
                 child: _buildBody(),
               ),
             ),
@@ -212,11 +226,15 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(Icons.home_outlined, Icons.home_rounded, 'Beranda', 0),
-                _buildNavItem(Icons.search_outlined, Icons.search_rounded, 'Cari', 1),
+                _buildNavItem(
+                    Icons.home_outlined, Icons.home_rounded, 'Beranda', 0),
+                _buildNavItem(
+                    Icons.search_outlined, Icons.search_rounded, 'Cari', 1),
                 const SizedBox(width: 48),
-                _buildNavItem(Icons.history_outlined, Icons.history_rounded, 'Riwayat', 2),
-                _buildNavItem(Icons.person_outlined, Icons.person_rounded, 'Profil', 3),
+                _buildNavItem(Icons.history_outlined, Icons.history_rounded,
+                    'Riwayat', 2),
+                _buildNavItem(
+                    Icons.person_outlined, Icons.person_rounded, 'Profil', 3),
               ],
             ),
           ),
@@ -225,7 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, IconData activeIcon, String label, int index) {
+  Widget _buildNavItem(
+      IconData icon, IconData activeIcon, String label, int index) {
     final isSelected = _currentIndex == index;
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),
@@ -234,7 +253,9 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
@@ -261,7 +282,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
@@ -284,59 +304,128 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         const SizedBox(height: 16),
         _buildFilterTabs(provider),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
+        // View toggle row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${provider.items.length} laporan',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _homeViewButton(Icons.view_list_rounded, false),
+                    _homeViewButton(Icons.grid_view_rounded, true),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         Expanded(
           child: provider.isLoading
               ? const Center(
                   child: CircularProgressIndicator(color: AppColors.primary),
                 )
               : provider.items.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Belum ada laporan',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Jadilah yang pertama menemukan!',
+                            style: TextStyle(color: Colors.grey[400]),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Belum ada laporan',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Jadilah yang pertama menemukan!',
-                        style: TextStyle(color: Colors.grey[400]),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  color: AppColors.primary,
-                  onRefresh: () => provider.listenToItems(),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 100),
-                    itemCount: provider.items.length,
-                    itemBuilder: (context, index) {
-                      return ItemCard(item: provider.items[index]);
-                    },
-                  ),
-                ),
+                    )
+                  : RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () => provider.listenToItems(),
+                      child: _isGridView
+                          ? GridView.builder(
+                              padding:
+                                  const EdgeInsets.fromLTRB(12, 0, 12, 100),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                childAspectRatio: 0.78,
+                              ),
+                              itemCount: provider.items.length,
+                              itemBuilder: (context, index) {
+                                return ItemGridTile(
+                                    item: provider.items[index]);
+                              },
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 100),
+                              itemCount: provider.items.length,
+                              itemBuilder: (context, index) {
+                                return ItemCard(item: provider.items[index]);
+                              },
+                            ),
+                    ),
         ),
       ],
+    );
+  }
+
+  Widget _homeViewButton(IconData icon, bool isGrid) {
+    final isActive = _isGridView == isGrid;
+    return GestureDetector(
+      onTap: () => setState(() => _isGridView = isGrid),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: isActive ? Colors.white : AppColors.textLight,
+        ),
+      ),
     );
   }
 
@@ -357,9 +446,15 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          Expanded(child: _buildSegmentButton('Semua', 'semua', provider.filterStatus)),
-          Expanded(child: _buildSegmentButton('Hilang', 'hilang', provider.filterStatus)),
-          Expanded(child: _buildSegmentButton('Ditemukan', 'ditemukan', provider.filterStatus)),
+          Expanded(
+              child:
+                  _buildSegmentButton('Semua', 'semua', provider.filterStatus)),
+          Expanded(
+              child: _buildSegmentButton(
+                  'Hilang', 'hilang', provider.filterStatus)),
+          Expanded(
+              child: _buildSegmentButton(
+                  'Ditemukan', 'ditemukan', provider.filterStatus)),
         ],
       ),
     );
@@ -404,7 +499,8 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
-                const Icon(Icons.notifications_none, color: Colors.white, size: 20),
+                const Icon(Icons.notifications_none,
+                    color: Colors.white, size: 20),
                 if (unreadCount > 0)
                   Positioned(
                     right: -4,
@@ -434,7 +530,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showNotificationsBottomSheet(BuildContext context, NotificationProvider provider) {
+  void _showNotificationsBottomSheet(
+      BuildContext context, NotificationProvider provider) {
     provider.markAllAsRead();
     showModalBottomSheet(
       context: context,
@@ -467,7 +564,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Padding(
                   padding: EdgeInsets.all(32.0),
                   child: Center(
-                    child: Text('Belum ada notifikasi', style: TextStyle(color: Colors.grey)),
+                    child: Text('Belum ada notifikasi',
+                        style: TextStyle(color: Colors.grey)),
                   ),
                 )
               else
@@ -479,10 +577,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       final notif = provider.notifications[index];
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                          child: const Icon(Icons.notifications, color: AppColors.primary),
+                          backgroundColor:
+                              AppColors.primary.withValues(alpha: 0.1),
+                          child: const Icon(Icons.notifications,
+                              color: AppColors.primary),
                         ),
-                        title: Text(notif.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(notif.title,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(notif.body),
                         onTap: () {
                           Navigator.pop(context); // Close bottom sheet
@@ -497,7 +599,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     foregroundColor: AppColors.textDark,
                                     elevation: 0.5,
                                   ),
-                                  body: const SafeArea(child: ValidationScreen()),
+                                  body:
+                                      const SafeArea(child: ValidationScreen()),
                                 ),
                               ),
                             );

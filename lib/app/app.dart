@@ -5,6 +5,7 @@ import '../core/constants/app_strings.dart';
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/providers/item_provider.dart';
 import '../presentation/providers/notification_provider.dart';
+import '../presentation/providers/comment_provider.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
 import '../presentation/screens/splash/splash_screen.dart';
@@ -19,6 +20,7 @@ class KampusCareApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ItemProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => CommentProvider()),
       ],
       child: const _AuthGate(),
     );

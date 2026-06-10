@@ -10,10 +10,12 @@ import '../../../data/services/location_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/item_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/comment_provider.dart';
 import 'components/item_map_preview.dart';
 import 'components/pin_bottom_sheet.dart';
 import 'components/upload_claimer_proof_sheet.dart';
 import 'components/claim_wizard_sheet.dart';
+import 'components/comment_section.dart';
 
 class ActiveItemCard extends StatefulWidget {
   final ItemModel item;
@@ -188,6 +190,71 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
         reportedByPhone: item.reportedByPhone,
         itemTitle: item.title,
         isHilang: isHilang,
+      ),
+    );
+  }
+
+  Widget _buildCommentRow(BuildContext context) {
+    // Subscribe to get live comment count
+    final commentProvider = context.watch<CommentProvider>();
+    // Ensure we're subscribed for this item
+    commentProvider.subscribeToComments(item.id);
+    final count = commentProvider.getCommentCount(item.id);
+
+    return GestureDetector(
+      onTap: () => showCommentSection(context, item),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.chat_bubble_outline_rounded,
+                    size: 20, color: AppColors.textSecondary),
+                if (count > 0)
+                  Positioned(
+                    right: -6,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                count > 0 ? 'Lihat $count komentar' : 'Tulis komentar pertama',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 20, color: AppColors.textLight),
+          ],
+        ),
       ),
     );
   }
@@ -500,6 +567,9 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                       ),
                     ],
                     _buildProgressStepper(),
+                    // Comment button row
+                    const SizedBox(height: 10),
+                    _buildCommentRow(context),
                     if (widget.showActionButton &&
                         item.reportedByPhone.isNotEmpty &&
                         !isDikembalikan &&

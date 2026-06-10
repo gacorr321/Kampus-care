@@ -26,5 +26,15 @@ service cloud.firestore {
     match /notifications/{notifId} {
       allow read, write: if isAuth();
     }
+
+    match /comments/{commentId} {
+      allow read: if isAuth();
+      // Any authenticated user can create comments
+      allow create: if isAuth();
+      // Only the comment author can delete their own comment
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      // No updates allowed (comments are immutable)
+      allow update: if false;
+    }
   }
 }
