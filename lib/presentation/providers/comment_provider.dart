@@ -20,11 +20,15 @@ class CommentProvider extends ChangeNotifier {
     // Avoid duplicate subscriptions
     if (_subscriptions.containsKey(itemId)) return;
 
-    _subscriptions[itemId] =
-        _repository.getCommentsForItem(itemId).listen((comments) {
-      _itemComments[itemId] = comments;
-      notifyListeners();
-    });
+    _subscriptions[itemId] = _repository.getCommentsForItem(itemId).listen(
+      (comments) {
+        _itemComments[itemId] = comments;
+        notifyListeners();
+      },
+      onError: (error) {
+        debugPrint('CommentProvider stream error for $itemId: $error');
+      },
+    );
   }
 
   /// Unsubscribe from a specific item's comments.

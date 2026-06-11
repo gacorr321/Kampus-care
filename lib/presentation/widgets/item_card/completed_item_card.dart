@@ -21,6 +21,16 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
   ItemModel get item => widget.item;
   final LocationService _locationService = LocationService();
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<CommentProvider>().subscribeToComments(item.id);
+      }
+    });
+  }
+
   /// Opens the map using GPS coordinates directly, or geocodes the address
   /// if GPS coordinates are missing.
   Future<void> _openMapForItem(BuildContext context) async {
@@ -115,7 +125,6 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
   /// Builds a tappable location row that opens the map when tapped.
   Widget _buildCommentRow(BuildContext context) {
     final commentProvider = context.watch<CommentProvider>();
-    commentProvider.subscribeToComments(item.id);
     final count = commentProvider.getCommentCount(item.id);
 
     return GestureDetector(

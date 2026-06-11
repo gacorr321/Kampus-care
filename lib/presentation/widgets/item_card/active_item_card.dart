@@ -35,6 +35,17 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
   ItemModel get item => widget.item;
   final LocationService _locationService = LocationService();
 
+  @override
+  void initState() {
+    super.initState();
+    // Subscribe to comments for this item once
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<CommentProvider>().subscribeToComments(item.id);
+      }
+    });
+  }
+
   /// Opens the map using GPS coordinates directly, or geocodes the address
   /// if GPS coordinates are missing.
   Future<void> _openMapForItem(BuildContext context) async {
@@ -195,10 +206,7 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
   }
 
   Widget _buildCommentRow(BuildContext context) {
-    // Subscribe to get live comment count
     final commentProvider = context.watch<CommentProvider>();
-    // Ensure we're subscribed for this item
-    commentProvider.subscribeToComments(item.id);
     final count = commentProvider.getCommentCount(item.id);
 
     return GestureDetector(

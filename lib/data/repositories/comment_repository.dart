@@ -4,25 +4,20 @@ import '../models/comment_model.dart';
 class CommentRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Stream of comments for a specific item, ordered by creation time.
+  /// Stream of comments for a specific item.
+  /// Sorted client-side to avoid needing a composite Firestore index.
   Stream<List<CommentModel>> getCommentsForItem(String itemId) {
     return _firestore
         .collection('comments')
         .where('itemId', isEqualTo: itemId)
-        .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => CommentModel.fromMap(doc.data()))
-            .toList());
-  }
-
-  /// Get comment count for a specific item.
-  Stream<int> getCommentCount(String itemId) {
-    return _firestore
-        .collection('comments')
-        .where('itemId', isEqualTo: itemId)
-        .snapshots()
-        .map((snapshot) => snapshot.size);
+        .map((snapshot) {
+      final comments =
+          snapshot.docs.map((doc) => CommentModel.fromMap(doc.data())).toList();
+      // Sort by createdAt ascending (oldest first)
+      comments.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      return comments;
+    });
   }
 
   /// Add a new comment (top-level or reply).
