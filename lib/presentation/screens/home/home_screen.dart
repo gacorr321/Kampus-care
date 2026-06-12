@@ -22,7 +22,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  bool _isGridView = false;
 
   @override
   void initState() {
@@ -305,35 +304,19 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 16),
         _buildFilterTabs(provider),
         const SizedBox(height: 8),
-        // View toggle row
+        // Item count
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${provider.items.length} laporan',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${provider.items.length} laporan',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
               ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _homeViewButton(Icons.view_list_rounded, false),
-                    _homeViewButton(Icons.grid_view_rounded, true),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -379,53 +362,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   : RefreshIndicator(
                       color: AppColors.primary,
                       onRefresh: () => provider.listenToItems(),
-                      child: _isGridView
-                          ? GridView.builder(
-                              padding:
-                                  const EdgeInsets.fromLTRB(12, 0, 12, 100),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 10,
-                                crossAxisSpacing: 10,
-                                childAspectRatio: 0.78,
-                              ),
-                              itemCount: provider.items.length,
-                              itemBuilder: (context, index) {
-                                return ItemGridTile(
-                                    item: provider.items[index]);
-                              },
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(bottom: 100),
-                              itemCount: provider.items.length,
-                              itemBuilder: (context, index) {
-                                return ItemCard(item: provider.items[index]);
-                              },
-                            ),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 100),
+                        itemCount: provider.items.length,
+                        itemBuilder: (context, index) {
+                          return ItemCard(item: provider.items[index]);
+                        },
+                      ),
                     ),
         ),
       ],
-    );
-  }
-
-  Widget _homeViewButton(IconData icon, bool isGrid) {
-    final isActive = _isGridView == isGrid;
-    return GestureDetector(
-      onTap: () => setState(() => _isGridView = isGrid),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: isActive ? Colors.white : AppColors.textLight,
-        ),
-      ),
     );
   }
 
