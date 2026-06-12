@@ -17,7 +17,6 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<ItemModel> _searchResults = [];
   Timer? _debounce;
 
   bool _isGridView = false;
@@ -46,41 +45,17 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _performSearch(String query) {
-    final words =
-        query.toLowerCase().split(' ').where((w) => w.length > 2).toList();
-    if (words.isEmpty && query.isNotEmpty) words.add(query.toLowerCase());
-
-    final allItems = context.read<ItemProvider>().items;
-    List<ItemModel> results = [];
-
-    for (var item in allItems) {
-      // Text search
-      if (words.isNotEmpty) {
-        final textToSearch =
-            '${item.title} ${item.description} ${item.category}'.toLowerCase();
-        bool isMatch = false;
-        for (var word in words) {
-          if (textToSearch.contains(word)) {
-            isMatch = true;
-            break;
-          }
-        }
-        if (!isMatch) continue;
-      }
-
-      results.add(item);
-    }
-
-    setState(() => _searchResults = results);
+    context.read<ItemProvider>().searchItems(query);
   }
 
   // ── Build ────────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ItemProvider>();
     final displayItems = _searchController.text.isEmpty
-        ? context.watch<ItemProvider>().items
-        : _searchResults;
+        ? provider.items
+        : provider.searchResults;
 
     return Column(
       children: [
@@ -148,23 +123,46 @@ class _SearchScreenState extends State<SearchScreen> {
 
         // ── Results Body ──────────────────────────────────────────────────
         Expanded(
-          child: displayItems.isEmpty
-              ? _buildEmptyState()
-              : Column(
+          child: provider.isSearching
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary))
+              : displayItems.isEmpty
+                  ? _buildEmptyState()
+                  : Column(
                   children: [
                     // ── Results header with toggle ────────────────────
                     _buildResultsHeader(displayItems),
                     // ── Results list or grid ─────────────────────────
                     Expanded(
-                      child: _isGridView
-                          ? _buildGridView(displayItems)
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(top: 8),
-                              itemCount: displayItems.length,
-                              itemBuilder: (context, index) =>
-                                  ItemCard(item: displayItems[index]),
-                            ),
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: (ScrollNotification scrollInfo) {
+                          if (scrollInfo.metrics.pixels >=
+                              scrollInfo.metrics.maxScrollExtent - 200) {
+                            if (_searchController.text.isEmpty) {
+                              context.read<ItemProvider>().loadMoreItems();
+                            } else {
+                              context.read<ItemProvider>().loadMoreSearchResults(_searchController.text.trim());
+                            }
+                          }
+                          return false;
+                        },
+                        child: _isGridView
+                            ? _buildGridView(displayItems)
+                            : ListView.builder(
+                                padding: const EdgeInsets.only(top: 8),
+                                itemCount: displayItems.length,
+                                itemBuilder: (context, index) =>
+                                    ItemCard(item: displayItems[index]),
+                              ),
+                      ),
                     ),
+                    if ((_searchController.text.isEmpty && provider.isFetchingMore) ||
+                        (_searchController.text.isNotEmpty && provider.isFetchingMoreSearch))
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(
+                            child: CircularProgressIndicator(color: AppColors.primary)),
+                      ),
                   ],
                 ),
         ),

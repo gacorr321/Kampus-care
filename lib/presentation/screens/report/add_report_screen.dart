@@ -147,7 +147,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
     }
   }
 
-  // Pilih tanggal hilang/ditemukan
+  // Pilih tanggal hilang/dikembalikan
   Future<void> _pickIncidentDate() async {
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
@@ -179,7 +179,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
       return;
     }
     if (_incidentDate == null) {
-      _showSnackbar('Tanggal hilang/ditemukan wajib diisi!', isError: true);
+      _showSnackbar('Tanggal hilang/dikembalikan wajib diisi!', isError: true);
       return;
     }
 
@@ -408,8 +408,8 @@ class _AddReportScreenState extends State<AddReportScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Tanggal Hilang/Ditemukan
-                  _buildLabel('Tanggal Hilang/Ditemukan *'),
+                  // Tanggal Hilang/Dikembalikan
+                  _buildLabel('Tanggal Hilang/Dikembalikan *'),
                   const SizedBox(height: 8),
                   InkWell(
                     onTap: _pickIncidentDate,

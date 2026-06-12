@@ -397,7 +397,7 @@ class ProfileScreen extends StatelessWidget {
                                 child: Text(
                                   item.status == 'hilang'
                                       ? 'Hilang'
-                                      : (item.status == 'dikembalikan' ? 'Selesai' : 'Ditemukan'),
+                                      : (item.status == 'dikembalikan' ? 'Selesai' : 'Dikembalikan'),
                                   style: TextStyle(
                                     color: item.status == 'hilang' ? AppColors.error : AppColors.success,
                                     fontSize: 11,

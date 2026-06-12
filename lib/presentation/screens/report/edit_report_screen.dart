@@ -160,7 +160,7 @@ class _EditReportScreenState extends State<EditReportScreen> {
       return;
     }
     if (_incidentDate == null) {
-      _showSnackbar('Tanggal hilang/ditemukan wajib diisi!', isError: true);
+      _showSnackbar('Tanggal hilang/dikembalikan wajib diisi!', isError: true);
       return;
     }
 
@@ -375,7 +375,7 @@ class _EditReportScreenState extends State<EditReportScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  _buildLabel('Tanggal Hilang/Ditemukan *'),
+                  _buildLabel('Tanggal Hilang/Dikembalikan *'),
                   const SizedBox(height: 8),
                   InkWell(
                     onTap: _pickIncidentDate,

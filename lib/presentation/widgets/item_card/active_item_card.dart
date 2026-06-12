@@ -131,7 +131,7 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
       await notifProvider.sendNotification(
         targetUserId: item.reportedBy,
         title: isHilangFlag
-            ? 'Barang Anda Ditemukan!'
+            ? 'Barang Anda Dikembalikan!'
             : 'Seseorang Mengklaim Barang Anda!',
         body:
             '${authProvider.user!.name} merespons laporan ${item.title}. Buka notifikasi ini untuk memasukkan PIN konfirmasi saat bertemu.',
@@ -460,7 +460,7 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                               Text(
                                 isDikembalikan
                                     ? 'Selesai'
-                                    : (isHilang ? 'Hilang' : 'Ditemukan'),
+                                    : (isHilang ? 'Hilang' : 'Dikembalikan'),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -567,7 +567,7 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                               size: 16, color: Colors.grey[600]),
                           const SizedBox(width: 4),
                           Text(
-                            '${isHilang ? "Hilang" : "Ditemukan"} pd: ${item.incidentDate!.day}/${item.incidentDate!.month}/${item.incidentDate!.year}',
+                            '${isHilang ? "Hilang" : "Dikembalikan"} pd: ${item.incidentDate!.day}/${item.incidentDate!.month}/${item.incidentDate!.year}',
                             style: TextStyle(
                                 color: Colors.grey[600], fontSize: 12),
                           ),

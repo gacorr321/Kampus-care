@@ -11,39 +11,88 @@ class ItemProvider extends ChangeNotifier {
   String _filterStatus = 'semua';
   StreamSubscription<List<ItemModel>>? _subscription;
 
+  // Pagination states
+  int _currentLimit = 20;
+  bool _isFetchingMore = false;
+
+  // Search states
+  List<ItemModel> _searchResults = [];
+  bool _isSearching = false;
+  int _searchLimit = 20;
+  bool _isFetchingMoreSearch = false;
+
   List<ItemModel> get items => _items;
   bool get isLoading => _isLoading;
+  bool get isFetchingMore => _isFetchingMore;
   String get filterStatus => _filterStatus;
 
-  Future<void> listenToItems() async {
-    _isLoading = true;
-    notifyListeners();
+  List<ItemModel> get searchResults => _searchResults;
+  bool get isSearching => _isSearching;
+  bool get isFetchingMoreSearch => _isFetchingMoreSearch;
+
+  Future<void> listenToItems({bool reset = false}) async {
+    if (reset || _items.isEmpty) {
+      _currentLimit = 20;
+      _isLoading = true;
+      notifyListeners();
+    }
 
     _subscription?.cancel();
-    _subscription = _repository.getAllItems().listen((data) {
+    final stream = _filterStatus == 'semua'
+        ? _repository.getAllItems(limit: _currentLimit)
+        : _repository.getItemsByStatus(_filterStatus, limit: _currentLimit);
+
+    _subscription = stream.listen((data) {
       _items = data;
       _isLoading = false;
+      _isFetchingMore = false;
       notifyListeners();
     });
-    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  void loadMoreItems() {
+    if (_isFetchingMore || _isLoading) return;
+    _isFetchingMore = true;
+    _currentLimit += 20;
+    notifyListeners();
+    listenToItems();
   }
 
   void setFilter(String status) {
     _filterStatus = status;
-    notifyListeners();
+    listenToItems(reset: true);
+  }
 
-    _subscription?.cancel();
-    if (status == 'semua') {
-      _subscription = _repository.getAllItems().listen((data) {
-        _items = data;
-        notifyListeners();
-      });
-    } else {
-      _subscription = _repository.getItemsByStatus(status).listen((data) {
-        _items = data;
-        notifyListeners();
-      });
+  Future<void> searchItems(String query, {bool reset = true}) async {
+    if (query.isEmpty) {
+      _searchResults = [];
+      notifyListeners();
+      return;
     }
+
+    if (reset) {
+      _searchLimit = 20;
+      _isSearching = true;
+      notifyListeners();
+    }
+
+    try {
+      _searchResults = await _repository.searchItems(query, limit: _searchLimit);
+    } catch (e) {
+      debugPrint('Search error: $e');
+    } finally {
+      _isSearching = false;
+      _isFetchingMoreSearch = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMoreSearchResults(String query) async {
+    if (_isFetchingMoreSearch || _isSearching || query.isEmpty) return;
+    _isFetchingMoreSearch = true;
+    _searchLimit += 20;
+    notifyListeners();
+    await searchItems(query, reset: false);
   }
 
   Future<void> addItem(ItemModel item) async {

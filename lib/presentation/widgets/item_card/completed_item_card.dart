@@ -311,7 +311,7 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
                 child: Divider(),
               ),
               _buildDetailRow(
-                  Icons.person, 'Ditemukan oleh: ', item.reportedByName),
+                  Icons.person, 'Dikembalikan oleh: ', item.reportedByName),
               const SizedBox(height: 8),
               _buildDetailRow(Icons.person_outline, 'Dikembalikan ke: ',
                   item.claimerName ?? 'Tidak diketahui'),
@@ -323,7 +323,7 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
                     Icons.calendar_today_outlined,
                     item.status == 'hilang'
                         ? 'Tanggal hilang: '
-                        : 'Tanggal ditemukan: ',
+                        : 'Tanggal dikembalikan: ',
                     '${item.incidentDate!.day}/${item.incidentDate!.month}/${item.incidentDate!.year}'),
                 const SizedBox(height: 8),
               ],

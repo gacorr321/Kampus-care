@@ -13,10 +13,11 @@ class ItemRepository {
   }
 
   // Ambil semua laporan realtime
-  Stream<List<ItemModel>> getAllItems() {
+  Stream<List<ItemModel>> getAllItems({int limit = 20}) {
     return _firestore
         .collection('items')
         .orderBy('reportedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -26,36 +27,49 @@ class ItemRepository {
   }
 
   // Filter by status
-  Stream<List<ItemModel>> getItemsByStatus(String status) {
+  Stream<List<ItemModel>> getItemsByStatus(String status, {int limit = 20}) {
+    // Note: This requires composite indexes in Firestore for (status, reportedAt)
     if (status == 'ditemukan') {
       return _firestore
           .collection('items')
           .where('status', whereIn: ['ditemukan', 'dikembalikan'])
+          .orderBy('reportedAt', descending: true)
+          .limit(limit)
           .snapshots()
           .map(
-            (snapshot) {
-              final items = snapshot.docs
+            (snapshot) => snapshot.docs
                   .map((doc) => ItemModel.fromMap(doc.data()))
-                  .toList();
-              items.sort((a, b) => b.reportedAt.compareTo(a.reportedAt));
-              return items;
-            }
+                  .toList()
           );
     }
     
     return _firestore
         .collection('items')
         .where('status', isEqualTo: status)
+        .orderBy('reportedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map(
-          (snapshot) {
-            final items = snapshot.docs
+          (snapshot) => snapshot.docs
                 .map((doc) => ItemModel.fromMap(doc.data()))
-                .toList();
-            items.sort((a, b) => b.reportedAt.compareTo(a.reportedAt));
-            return items;
-          }
+                .toList()
         );
+  }
+
+  // Server-side search
+  Future<List<ItemModel>> searchItems(String query, {int limit = 20}) async {
+    // Note: Firestore search is case-sensitive on the exact field. 
+    // Usually a separate lowercase field or Algolia is used for full-text.
+    // We'll use 'title' here, so it only matches exact prefixes (e.g. "hp" won't match "HP").
+    final snapshot = await _firestore
+        .collection('items')
+        .orderBy('title')
+        .startAt([query])
+        .endAt(['$query\uf8ff'])
+        .limit(limit)
+        .get();
+
+    return snapshot.docs.map((doc) => ItemModel.fromMap(doc.data())).toList();
   }
 
   // Ambil semua barang yang sudah selesai (publik)

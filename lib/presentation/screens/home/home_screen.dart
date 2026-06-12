@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final notifProvider = context.read<NotificationProvider>();
 
     Future.microtask(() {
-      itemProvider.listenToItems();
+      itemProvider.listenToItems(reset: true);
       if (authProvider.user != null) {
         notifProvider.listenToNotifications(authProvider.user!.uid);
       }
@@ -361,13 +361,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   : RefreshIndicator(
                       color: AppColors.primary,
-                      onRefresh: () => provider.listenToItems(),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 100),
-                        itemCount: provider.items.length,
-                        itemBuilder: (context, index) {
-                          return ItemCard(item: provider.items[index]);
+                      onRefresh: () => provider.listenToItems(reset: true),
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: (ScrollNotification scrollInfo) {
+                          if (scrollInfo.metrics.pixels >=
+                              scrollInfo.metrics.maxScrollExtent - 200) {
+                            provider.loadMoreItems();
+                          }
+                          return false;
                         },
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 100),
+                          itemCount: provider.items.length + (provider.isFetchingMore ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == provider.items.length) {
+                              return const Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                              );
+                            }
+                            return ItemCard(item: provider.items[index]);
+                          },
+                        ),
                       ),
                     ),
         ),
@@ -400,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Hilang', 'hilang', provider.filterStatus)),
           Expanded(
               child: _buildSegmentButton(
-                  'Ditemukan', 'ditemukan', provider.filterStatus)),
+                  'Dikembalikan', 'ditemukan', provider.filterStatus)),
         ],
       ),
     );

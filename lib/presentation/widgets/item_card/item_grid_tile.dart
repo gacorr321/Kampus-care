@@ -108,7 +108,7 @@ class ItemGridTile extends StatelessWidget {
                                 Text(
                                   isDikembalikan
                                       ? 'Selesai'
-                                      : (isHilang ? 'Hilang' : 'Ditemukan'),
+                                      : (isHilang ? 'Hilang' : 'Dikembalikan'),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 9,
