@@ -4,7 +4,6 @@ import '../../providers/item_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/item_card.dart';
-import '../../widgets/item_card/item_grid_tile.dart';
 import '../report/add_report_screen.dart';
 import '../profile/profile_screen.dart';
 import '../report/search_screen.dart';
@@ -372,12 +371,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         child: ListView.builder(
                           padding: const EdgeInsets.only(bottom: 100),
-                          itemCount: provider.items.length + (provider.isFetchingMore ? 1 : 0),
+                          itemCount: provider.items.length +
+                              (provider.isFetchingMore ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index == provider.items.length) {
                               return const Padding(
                                 padding: EdgeInsets.all(16.0),
-                                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                                child: Center(
+                                    child: CircularProgressIndicator(
+                                        color: AppColors.primary)),
                               );
                             }
                             return ItemCard(item: provider.items[index]);
