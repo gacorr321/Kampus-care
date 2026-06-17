@@ -32,6 +32,7 @@ class CommentSectionSheet extends StatefulWidget {
 
 class _CommentSectionSheetState extends State<CommentSectionSheet> {
   final TextEditingController _commentController = TextEditingController();
+  final FocusNode _commentFocusNode = FocusNode();
   String? _replyingToId;
   String? _replyingToName;
   bool _isSending = false;
@@ -50,6 +51,7 @@ class _CommentSectionSheetState extends State<CommentSectionSheet> {
   @override
   void dispose() {
     _commentController.dispose();
+    _commentFocusNode.dispose();
     super.dispose();
   }
 
@@ -102,10 +104,9 @@ class _CommentSectionSheetState extends State<CommentSectionSheet> {
       _replyingToId = commentId;
       _replyingToName = userName;
     });
-    FocusScope.of(context).requestFocus(FocusNode());
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
-        FocusScope.of(context).requestFocus(FocusNode());
+        _commentFocusNode.requestFocus();
       }
     });
   }
@@ -285,6 +286,7 @@ class _CommentSectionSheetState extends State<CommentSectionSheet> {
                     Expanded(
                       child: TextField(
                         controller: _commentController,
+                        focusNode: _commentFocusNode,
                         textInputAction: TextInputAction.send,
                         onSubmitted: (_) => _sendComment(),
                         style: const TextStyle(

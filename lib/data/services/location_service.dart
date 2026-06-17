@@ -68,17 +68,34 @@ class LocationService {
     }
   }
 
-  /// Converts an address string to GPS coordinates using Nominatim geocoding.
-  /// Returns null if geocoding fails.
+  /// Converts an address string to GPS coordinates.
+  /// 1. Tries native geocoding package (works best on Android/iOS).
+  /// 2. Falls back to Nominatim HTTP API (works on Web).
+  /// Returns null if all methods fail.
   Future<({double lat, double lng})?> geocodeAddress(String address) async {
+    // 1. Native geocoding (Android / iOS) – fast and reliable on mobile
+    try {
+      final locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        return (lat: locations.first.latitude, lng: locations.first.longitude);
+      }
+    } catch (_) {
+      // Not available on Web, continue to next method
+    }
+
+    // 2. Nominatim HTTP API fallback (mainly for Web)
     try {
       final query = Uri.encodeComponent(address);
-      final response = await http.get(
-        Uri.parse(
-          'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=1',
-        ),
-        headers: {'User-Agent': 'KampusCareApp/1.0 (kampuscare@example.com)'},
-      );
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=1',
+            ),
+            headers: {
+              'User-Agent': 'KampusCareApp/1.0 (kampuscare@example.com)'
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final results = json.decode(response.body) as List;
@@ -91,8 +108,9 @@ class LocationService {
         }
       }
     } catch (_) {
-      // Geocoding failed, return null
+      // All geocoding methods failed
     }
+
     return null;
   }
 }
