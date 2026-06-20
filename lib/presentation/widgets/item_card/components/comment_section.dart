@@ -13,6 +13,7 @@ void showCommentSection(BuildContext context, ItemModel item) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -266,7 +267,9 @@ class _CommentSectionSheetState extends State<CommentSectionSheet> {
                   12,
                   8,
                   12,
-                  8 + MediaQuery.of(context).padding.bottom,
+                  8 +
+                      MediaQuery.of(context).viewInsets.bottom +
+                      MediaQuery.of(context).padding.bottom,
                 ),
                 decoration: const BoxDecoration(
                   color: AppColors.surface,
