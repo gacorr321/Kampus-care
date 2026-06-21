@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const Positioned(
                           left: 20,
-                          bottom: 44,
+                          bottom: 60,
                           child: Text(
                             'Temukan barang hilang kampus',
                             style: TextStyle(
