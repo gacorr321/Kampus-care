@@ -4,9 +4,11 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../data/models/item_model.dart';
 import '../../../../data/services/location_service.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/comment_provider.dart';
 import 'components/item_map_preview.dart';
 import 'components/comment_section.dart';
+import 'components/complaint_sheet.dart';
 
 class CompletedItemCard extends StatefulWidget {
   final ItemModel item;
@@ -248,6 +250,8 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = context.watch<AuthProvider>().user?.uid;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
       elevation: 0,
@@ -271,34 +275,77 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: item.imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: item.imageUrl,
-                        width: double.infinity,
-                        height: 180,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          height: 180,
-                          color: Colors.grey[200],
-                          child:
-                              const Center(child: CircularProgressIndicator()),
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: item.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: item.imageUrl,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              height: 180,
+                              color: Colors.grey[200],
+                              child:
+                                  const Center(child: CircularProgressIndicator()),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              height: 180,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.broken_image,
+                                  size: 50, color: Colors.grey),
+                            ),
+                          )
+                        : Container(
+                            height: 180,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                            child: const Icon(Icons.image_not_supported,
+                                size: 50, color: Colors.grey),
+                          ),
+                  ),
+                  // if (currentUserId != item.reportedBy && currentUserId != item.claimedBy)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: GestureDetector(
+                        onTap: () => showComplaintSheet(context, item),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF57C00),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFF57C00).withValues(alpha: 0.35),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.warning_amber_rounded,
+                                  size: 13, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text(
+                                'Laporkan',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          height: 180,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image,
-                              size: 50, color: Colors.grey),
-                        ),
-                      )
-                    : Container(
-                        height: 180,
-                        width: double.infinity,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image_not_supported,
-                            size: 50, color: Colors.grey),
                       ),
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
               Text(
