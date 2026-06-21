@@ -16,6 +16,7 @@ import 'components/pin_bottom_sheet.dart';
 import 'components/upload_claimer_proof_sheet.dart';
 import 'components/claim_wizard_sheet.dart';
 import 'components/comment_section.dart';
+import 'components/complaint_sheet.dart';
 
 class ActiveItemCard extends StatefulWidget {
   final ItemModel item;
@@ -476,21 +477,66 @@ class _ActiveItemCardState extends State<ActiveItemCard> {
                   Positioned(
                     top: 12,
                     right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        item.category,
-                        style: const TextStyle(
-                          color: AppColors.textDark,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Category badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            item.category,
+                            style: const TextStyle(
+                              color: AppColors.textDark,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      ),
+                        // ⚠️ Laporkan button — only visible to non-owners
+                        if (currentUserId != item.reportedBy) ...[
+                          const SizedBox(height: 6),
+                          GestureDetector(
+                            onTap: () => showComplaintSheet(context, item),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF57C00),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFF57C00)
+                                        .withValues(alpha: 0.35),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.warning_amber_rounded,
+                                      size: 13, color: Colors.white),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Laporkan',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
