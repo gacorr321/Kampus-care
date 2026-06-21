@@ -306,7 +306,7 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
                                 size: 50, color: Colors.grey),
                           ),
                   ),
-                  // if (currentUserId != item.reportedBy && currentUserId != item.claimedBy)
+                  if (currentUserId != item.reportedBy && currentUserId != item.claimedBy)
                     Positioned(
                       top: 12,
                       right: 12,
