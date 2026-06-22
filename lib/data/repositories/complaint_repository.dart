@@ -4,7 +4,7 @@ import '../models/complaint_model.dart';
 class ComplaintRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Kirim aduan kepemilikan barang ke koleksi 'complaints' di Firestore.
+  
   Future<void> submitComplaint(ComplaintModel complaint) async {
     await _firestore
         .collection('complaints')
@@ -12,7 +12,7 @@ class ComplaintRepository {
         .set(complaint.toMap());
   }
 
-  /// Ambil semua aduan berdasarkan report ID (untuk admin).
+
   Stream<List<ComplaintModel>> getComplaintsByReport(String reportId) {
     return _firestore
         .collection('complaints')
