@@ -250,6 +250,7 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final currentUserId = context.watch<AuthProvider>().user?.uid;
 
     return Card(
@@ -306,8 +307,8 @@ class _CompletedItemCardState extends State<CompletedItemCard> {
                                 size: 50, color: Colors.grey),
                           ),
                   ),
-                  if (currentUserId != item.reportedBy && currentUserId != item.claimedBy)
-                    Positioned(
+                  // Menampilkan tombol Laporkan untuk semua user (termasuk tester)
+                  Positioned(
                       top: 12,
                       right: 12,
                       child: GestureDetector(
