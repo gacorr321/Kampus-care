@@ -7,7 +7,9 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isAuth();
+      // Allow unauthenticated read so the login flow can look up
+      // a user's email by NIM before Firebase Auth sign-in.
+      allow read: if true;
       allow write: if isAuth() && request.auth.uid == userId;
     }
 
@@ -35,6 +37,10 @@ service cloud.firestore {
       allow delete: if isAuth() && resource.data.userId == request.auth.uid;
       // No updates allowed (comments are immutable)
       allow update: if false;
+    }
+
+    match /complaints/{complaintId} {
+      allow read, write: if isAuth();
     }
   }
 }
